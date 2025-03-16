@@ -1,4 +1,3 @@
-
 import { useReducer, useCallback, useEffect, useRef } from "react";
 
 export type ToastVariant = "default" | "destructive" | "success" | "warning" | "info" | "error";
@@ -204,15 +203,7 @@ export function useToast() {
 
 let listeners: ((options: ToastOptions) => void)[] = [];
 
-// Fixed toast function declaration to match the ToastFunction interface
-export const toast = ((options: ToastOptions) => {
-  const event = new CustomEvent("toast", { detail: options });
-  document.dispatchEvent(event);
-  listeners.forEach(listener => listener(options));
-  return generateId();
-}) as ToastFunction;
-
-interface ToastFunction {
+export interface ToastFunction {
   (options: ToastOptions): string;
   success: (options: Omit<ToastOptions, "variant">) => string;
   error: (options: Omit<ToastOptions, "variant">) => string;
@@ -222,21 +213,30 @@ interface ToastFunction {
   subscribe: (listener: (options: ToastOptions) => void) => () => void;
 }
 
-toast.success = (options) => toast({ ...options, variant: "success" });
-toast.error = (options) => toast({ ...options, variant: "destructive" }); // Using "destructive" for error
-toast.warning = (options) => toast({ ...options, variant: "warning" });
-toast.info = (options) => toast({ ...options, variant: "info" });
+const toastFn = ((options: ToastOptions) => {
+  const event = new CustomEvent("toast", { detail: options });
+  document.dispatchEvent(event);
+  listeners.forEach(listener => listener(options));
+  return generateId();
+}) as ToastFunction;
 
-toast.dismiss = (toastId?: string) => {
+toastFn.success = (options) => toastFn({ ...options, variant: "success" });
+toastFn.error = (options) => toastFn({ ...options, variant: "error" });
+toastFn.warning = (options) => toastFn({ ...options, variant: "warning" });
+toastFn.info = (options) => toastFn({ ...options, variant: "info" });
+
+toastFn.dismiss = (toastId?: string) => {
   const event = new CustomEvent("toast-dismiss", { 
     detail: { toastId } 
   });
   document.dispatchEvent(event);
 };
 
-toast.subscribe = (listener) => {
+toastFn.subscribe = (listener) => {
   listeners.push(listener);
   return () => {
     listeners = listeners.filter(l => l !== listener);
   };
 };
+
+export const toast = toastFn;

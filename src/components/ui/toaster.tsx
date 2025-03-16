@@ -1,5 +1,6 @@
+
 import { useEffect, useState, useRef } from "react";
-import { useToast, type Toast } from "@/hooks/use-toast";
+import { useToast, type Toast, toast as toastFunction } from "@/hooks/use-toast";
 import {
   Toast as ToastPrimitive,
   ToastClose,
@@ -12,7 +13,6 @@ import {
 import { cn } from "@/lib/utils";
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast as toastFunction } from "@/hooks/use-toast";
 
 export function Toaster() {
   const { toasts, dismiss } = useToast();
