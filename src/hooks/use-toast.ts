@@ -1,6 +1,7 @@
+
 import { useReducer, useCallback, useEffect, useRef } from "react";
 
-export type ToastVariant = "default" | "destructive" | "success" | "warning" | "info";
+export type ToastVariant = "default" | "destructive" | "success" | "warning" | "info" | "error";
 
 export type Toast = {
   id: string;
@@ -203,6 +204,7 @@ export function useToast() {
 
 let listeners: ((options: ToastOptions) => void)[] = [];
 
+// Fixed toast function declaration to match the ToastFunction interface
 export const toast = ((options: ToastOptions) => {
   const event = new CustomEvent("toast", { detail: options });
   document.dispatchEvent(event);
@@ -221,7 +223,7 @@ interface ToastFunction {
 }
 
 toast.success = (options) => toast({ ...options, variant: "success" });
-toast.error = (options) => toast({ ...options, variant: "destructive" });
+toast.error = (options) => toast({ ...options, variant: "destructive" }); // Using "destructive" for error
 toast.warning = (options) => toast({ ...options, variant: "warning" });
 toast.info = (options) => toast({ ...options, variant: "info" });
 

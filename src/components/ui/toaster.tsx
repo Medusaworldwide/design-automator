@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from "react";
 import { useToast, type Toast } from "@/hooks/use-toast";
 import {
@@ -13,13 +12,13 @@ import {
 import { cn } from "@/lib/utils";
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast as toastFunction } from "@/hooks/use-toast";
 
 export function Toaster() {
   const { toasts, dismiss } = useToast();
   const [mountedToasts, setMountedToasts] = useState<Toast[]>([]);
   const dismissAllTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Handle direct toast creation via CustomEvent
   useEffect(() => {
     const handleToast = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -33,14 +32,12 @@ export function Toaster() {
       };
       
       setMountedToasts(prev => {
-        // If we already have maximum toasts (3), queue it by appending
         if (prev.length >= 3) {
           return [...prev, newToast];
         }
         return [...prev, newToast];
       });
       
-      // Auto dismiss after duration
       if (!options.important && options.duration !== Infinity) {
         setTimeout(() => {
           setMountedToasts(prev => prev.filter(toast => toast.id !== id));
@@ -55,12 +52,10 @@ export function Toaster() {
       if (toastId) {
         setMountedToasts(prev => prev.filter(toast => toast.id !== toastId));
       } else {
-        // Dismiss all toasts if no ID specified
         setMountedToasts([]);
       }
     };
     
-    // Listen for toast and toast-dismiss events
     document.addEventListener("toast", handleToast);
     document.addEventListener("toast-dismiss", handleDismiss);
     
@@ -70,19 +65,16 @@ export function Toaster() {
     };
   }, []);
   
-  // Sync mounted toasts with hook toasts
   useEffect(() => {
     setMountedToasts(toasts);
   }, [toasts]);
   
-  // Handle user inactivity for auto-dismissal
   useEffect(() => {
     const resetDismissTimer = () => {
       if (dismissAllTimeoutRef.current) {
         clearTimeout(dismissAllTimeoutRef.current);
       }
 
-      // Auto dismiss non-important toasts after 30 seconds of inactivity
       dismissAllTimeoutRef.current = setTimeout(() => {
         mountedToasts.forEach(toast => {
           if (!toast.important) {
@@ -92,7 +84,6 @@ export function Toaster() {
       }, 30000);
     };
 
-    // Reset timer on user activity
     if (mountedToasts.length > 0) {
       resetDismissTimer();
       window.addEventListener('mousemove', resetDismissTimer);
@@ -110,10 +101,10 @@ export function Toaster() {
     };
   }, [mountedToasts, dismiss]);
 
-  // Get the correct icon based on toast variant
   const getIconForVariant = (variant?: string) => {
     switch (variant) {
       case "destructive":
+      case "error":
         return <AlertCircle className="h-4 w-4" />;
       case "success":
         return <CheckCircle className="h-4 w-4" />;
@@ -126,10 +117,10 @@ export function Toaster() {
     }
   };
   
-  // Get variant-based classes
   const getVariantClasses = (variant?: string): string => {
     switch (variant) {
       case "destructive":
+      case "error":
         return "destructive";
       case "success":
         return "border-green-500 bg-green-50 text-green-800 dark:bg-green-950 dark:text-green-300";
@@ -153,7 +144,6 @@ export function Toaster() {
             className={cn(
               getVariantClasses(variant),
               "data-[swipe=move]:transition-none grow-1 group relative pointer-events-auto", 
-              // Animation delays based on position
               index === 0 ? "animate-fade-in" : 
               index === 1 ? "animate-fade-in delay-150" : 
               "animate-fade-in delay-300"
@@ -185,8 +175,7 @@ export function Toaster() {
                     variant="link" 
                     className="p-0 h-auto mt-1 text-xs justify-start"
                     onClick={() => {
-                      // Show more detailed help in a separate toast
-                      toast({
+                      toastFunction({
                         title: "Help",
                         description: contextualHelp,
                         variant: "info",
