@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,9 +9,15 @@ import { Input } from "@/components/ui/input";
 
 interface AIAssistantProps {
   websiteUrl: string | null;
+  selectedComponentId?: number | null;
+  components?: Array<{id: number, name: string, type: string}>;
 }
 
-const AIAssistant: React.FC<AIAssistantProps> = ({ websiteUrl }) => {
+const AIAssistant: React.FC<AIAssistantProps> = ({ 
+  websiteUrl, 
+  selectedComponentId, 
+  components = [] 
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<{role: 'user' | 'assistant', content: string}[]>([
@@ -21,29 +27,46 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ websiteUrl }) => {
     }
   ]);
   
+  useEffect(() => {
+    // Update AI assistant with context about selected component
+    if (selectedComponentId && isOpen) {
+      const selectedComponent = components.find(c => c.id === selectedComponentId);
+      if (selectedComponent) {
+        const assistantMessage = {
+          role: 'assistant' as const,
+          content: `I see you've selected the ${selectedComponent.name} component. How would you like to customize it? I can help with styling, accessibility, or code generation.`
+        };
+        setChatHistory(prev => [...prev, assistantMessage]);
+      }
+    }
+  }, [selectedComponentId, isOpen, components]);
+  
   if (!websiteUrl) return null;
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
     
     // Add user message to chat
-    setChatHistory([...chatHistory, { role: 'user', content: message }]);
+    setChatHistory(prev => [...prev, { role: 'user', content: message }]);
     
     // Simulate AI response
     setTimeout(() => {
       let response = '';
+      const selectedComponent = selectedComponentId 
+        ? components.find(c => c.id === selectedComponentId)?.name 
+        : null;
       
       if (message.toLowerCase().includes('responsive')) {
-        response = "I've analyzed the components and can help make them fully responsive. Would you like me to update the code with media queries for mobile, tablet, and desktop views?";
+        response = `I've analyzed ${selectedComponent ? `the ${selectedComponent}` : 'the components'} and can help make them fully responsive. Would you like me to update the code with media queries for mobile, tablet, and desktop views?`;
       } else if (message.toLowerCase().includes('color') || message.toLowerCase().includes('palette')) {
-        response = "I can adjust the color scheme. Based on design trends, I recommend using a primary color of #6366F1 with #A855F7 as an accent. Would you like to see a preview with this palette?";
+        response = `I can adjust the color scheme ${selectedComponent ? `for the ${selectedComponent}` : ''}. Based on design trends, I recommend using a primary color of #6366F1 with #A855F7 as an accent. Would you like to see a preview with this palette?`;
       } else if (message.toLowerCase().includes('accessibility') || message.toLowerCase().includes('a11y')) {
-        response = "I've analyzed the components for accessibility. I recommend improving contrast ratios and adding proper ARIA labels. Would you like me to generate accessibility-enhanced code?";
+        response = `I've analyzed ${selectedComponent ? `the ${selectedComponent}` : 'the components'} for accessibility. I recommend improving contrast ratios and adding proper ARIA labels. Would you like me to generate accessibility-enhanced code?`;
       } else {
-        response = "I can help customize this component. Would you like me to modify the layout, colors, or generate alternative variations?";
+        response = `I can help customize ${selectedComponent ? `the ${selectedComponent}` : 'this component'}. Would you like me to modify the layout, colors, or generate alternative variations?`;
       }
       
-      setChatHistory([...chatHistory, { role: 'user', content: message }, { role: 'assistant', content: response }]);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: response }]);
     }, 1000);
     
     setMessage('');
@@ -75,6 +98,41 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ websiteUrl }) => {
         </div>
       </div>
     );
+  };
+
+  // Create contextual suggestion buttons based on selected component
+  const getSuggestionButtons = () => {
+    const selectedComponent = selectedComponentId 
+      ? components.find(c => c.id === selectedComponentId)
+      : null;
+    
+    const commonSuggestions = [
+      { text: "Make responsive", prompt: "Make this component fully responsive" },
+      { text: "Color palette", prompt: "Suggest a better color palette" },
+      { text: "Accessibility", prompt: "Improve accessibility" },
+    ];
+    
+    // Add component-specific suggestions
+    if (selectedComponent) {
+      if (selectedComponent.type === 'form') {
+        commonSuggestions.push({ 
+          text: "Validate form", 
+          prompt: `Add validation to the ${selectedComponent.name}` 
+        });
+      } else if (selectedComponent.type === 'layout') {
+        commonSuggestions.push({ 
+          text: "Animation", 
+          prompt: `Add entrance animations to the ${selectedComponent.name}` 
+        });
+      } else if (selectedComponent.type === 'cards') {
+        commonSuggestions.push({ 
+          text: "Card hover", 
+          prompt: `Add hover effects to the ${selectedComponent.name}` 
+        });
+      }
+    }
+    
+    return commonSuggestions;
   };
 
   if (!isOpen) {
@@ -119,15 +177,17 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ websiteUrl }) => {
         </div>
         
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="text-xs py-1 h-auto" onClick={() => setMessage("Make this component fully responsive")}>
-            Make responsive
-          </Button>
-          <Button variant="outline" size="sm" className="text-xs py-1 h-auto" onClick={() => setMessage("Suggest a better color palette")}>
-            Color palette
-          </Button>
-          <Button variant="outline" size="sm" className="text-xs py-1 h-auto" onClick={() => setMessage("Improve accessibility")}>
-            Accessibility
-          </Button>
+          {getSuggestionButtons().map((suggestion, index) => (
+            <Button 
+              key={index}
+              variant="outline" 
+              size="sm" 
+              className="text-xs py-1 h-auto" 
+              onClick={() => setMessage(suggestion.prompt)}
+            >
+              {suggestion.text}
+            </Button>
+          ))}
         </div>
       </CardContent>
     </Card>

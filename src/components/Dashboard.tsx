@@ -10,9 +10,22 @@ import { Toaster } from "@/components/ui/toaster";
 const Dashboard: React.FC = () => {
   const [websiteUrl, setWebsiteUrl] = useState<string | null>(null);
   const [selectedComponentId, setSelectedComponentId] = useState<number | null>(null);
+  const [components, setComponents] = useState<Array<{id: number, name: string, type: string}>>([]);
   
   const handleUrlSubmit = (url: string) => {
     setWebsiteUrl(url);
+    // Simulate component detection with sample data
+    setComponents([
+      { id: 1, name: 'Hero Section', type: 'layout' },
+      { id: 2, name: 'Navbar', type: 'navigation' },
+      { id: 3, name: 'Feature Cards', type: 'cards' },
+      { id: 4, name: 'Contact Form', type: 'form' },
+      { id: 5, name: 'Footer', type: 'footer' },
+    ]);
+  };
+  
+  const handleComponentSelect = (componentId: number) => {
+    setSelectedComponentId(componentId);
   };
   
   return (
@@ -33,17 +46,25 @@ const Dashboard: React.FC = () => {
         
         <ComponentPreview 
           websiteUrl={websiteUrl} 
+          components={components}
+          selectedComponentId={selectedComponentId}
+          onComponentSelect={handleComponentSelect}
         />
         
         {websiteUrl && (
           <CodeGeneration 
             websiteUrl={websiteUrl}
             selectedComponentId={selectedComponentId}
+            components={components}
           />
         )}
       </main>
       
-      <AIAssistant websiteUrl={websiteUrl} />
+      <AIAssistant 
+        websiteUrl={websiteUrl} 
+        selectedComponentId={selectedComponentId}
+        components={components}
+      />
       
       <Toaster />
     </div>
