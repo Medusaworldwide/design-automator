@@ -5,18 +5,27 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Download, Code, Layers, Check, Image } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import ComponentSelector from './ComponentSelector';
 
 interface ComponentPreviewProps {
   websiteUrl: string | null;
+  components?: Array<{id: number, name: string, type: string}>;
+  selectedComponentId?: number | null;
+  onComponentSelect?: (id: number) => void;
 }
 
-const ComponentPreview: React.FC<ComponentPreviewProps> = ({ websiteUrl }) => {
+const ComponentPreview: React.FC<ComponentPreviewProps> = ({ 
+  websiteUrl, 
+  components = [],
+  selectedComponentId = null,
+  onComponentSelect = () => {} 
+}) => {
   const [activeTab, setActiveTab] = useState('components');
   const [copying, setCopying] = useState(false);
   const { toast } = useToast();
   
   // Mock component data for demonstration
-  const components = [
+  const mockComponents = [
     { id: 1, type: 'Hero Section', screenshot: 'hero' },
     { id: 2, type: 'Navigation Bar', screenshot: 'navbar' },
     { id: 3, type: 'Feature Card', screenshot: 'card' },
@@ -56,6 +65,14 @@ const ComponentPreview: React.FC<ComponentPreviewProps> = ({ websiteUrl }) => {
 
   return (
     <div className="w-full mt-8">
+      {components && components.length > 0 && (
+        <ComponentSelector 
+          components={components}
+          selectedComponentId={selectedComponentId}
+          onComponentSelect={onComponentSelect}
+        />
+      )}
+      
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">
           Components from <span className="text-brand-indigo">{new URL(websiteUrl).hostname}</span>
@@ -101,7 +118,7 @@ const ComponentPreview: React.FC<ComponentPreviewProps> = ({ websiteUrl }) => {
         
         <TabsContent value="components" className="mt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {components.map((component) => (
+            {mockComponents.map((component) => (
               <Card key={component.id} className="overflow-hidden group hover:shadow-md transition-all duration-300">
                 <CardHeader className="p-0 relative h-40 bg-gray-100 dark:bg-gray-800">
                   <div className="absolute inset-0 flex items-center justify-center text-gray-400">
