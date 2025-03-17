@@ -132,8 +132,8 @@ export const toastHelpers = {
   apiRequest: (message: string) =>
     createToast("Processing", message, "info", { 
       duration: Infinity, 
-      important: true,
-      id: "api-request"
+      important: true
+      // Removed the 'id' property since it's not in the ToastOptions type
     }),
 
   /**
